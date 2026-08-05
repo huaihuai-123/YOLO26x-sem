@@ -1,9 +1,10 @@
 """
 YOLO26x-sem 语义分割推理脚本
-参考: https://docs.ultralytics.com/zh/modes/predict/
+参考: https://docs.ultralytics.com/zh/modes/predict/.
 """
 
 import numpy as np
+
 from ultralytics import YOLO
 from ultralytics.data.utils import add_polygon_background
 from ultralytics.utils import YAML
@@ -22,38 +23,33 @@ source = "dataset_predict/QQ20260805-195604.png"  # TODO: 替换为实际图片/
 # 推理
 results = model.predict(
     source=source,
-
     # ========== 基础配置 ==========
-    imgsz=640,                     # 推理图片尺寸
-    conf=0.25,                     # 置信度阈值（语义分割中可能不适用，保留兼容）
-    device="cpu",                  # GPU 设备号；CPU 填 "cpu"
-    batch=1,                       # 推理 batch size
-    quantize='fp16',               # FP16 半精度推理（省显存加速）
-
+    imgsz=640,  # 推理图片尺寸
+    conf=0.25,  # 置信度阈值（语义分割中可能不适用，保留兼容）
+    device="cpu",  # GPU 设备号；CPU 填 "cpu"
+    batch=1,  # 推理 batch size
+    quantize="fp16",  # FP16 半精度推理（省显存加速）
     # ========== 类别过滤 ==========
-    classes=None,                  # 只检测指定类别；None=全部；示例: [0, 1]
-
+    classes=None,  # 只检测指定类别；None=全部；示例: [0, 1]
     # ========== 保存与可视化 ==========
-    save=True,                     # 保存标注结果图片/视频
-    show=False,                    # 实时窗口显示结果
-    line_width=None,               # 边框线宽；None 自动计算
-
+    save=True,  # 保存标注结果图片/视频
+    show=False,  # 实时窗口显示结果
+    line_width=None,  # 边框线宽；None 自动计算
     # ========== 视频/流专用 ==========
-    vid_stride=1,                  # 视频帧间隔（1=每帧都处理，N=每隔N帧）
-    stream=False,                  # True 时返回生成器，避免视频/流场景内存溢出
-
+    vid_stride=1,  # 视频帧间隔（1=每帧都处理，N=每隔N帧）
+    stream=False,  # True 时返回生成器，避免视频/流场景内存溢出
     # ========== 输出 ==========
-    project="./runs",              # 输出根目录
-    name="predict_semantic",       # 实验名称（子目录）
-    exist_ok=True,                 # 覆盖已有输出目录
-    verbose=True,                  # 打印详细信息
+    project="./runs",  # 输出根目录
+    name="predict_semantic",  # 实验名称（子目录）
+    exist_ok=True,  # 覆盖已有输出目录
+    verbose=True,  # 打印详细信息
 )
 
 # 遍历结果
 for i, r in enumerate(results):
     if r.semantic_mask is not None:
         mask_data = r.semantic_mask.data
-        mask = mask_data.cpu().numpy() if hasattr(mask_data, 'cpu') else np.array(mask_data)
+        mask = mask_data.cpu().numpy() if hasattr(mask_data, "cpu") else np.array(mask_data)
         # mask 是 [H, W] 的类别 ID 图，每个像素值代表该位置的类别
         unique_classes = np.unique(mask)
         # 统计每个类别的像素占比
