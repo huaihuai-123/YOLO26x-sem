@@ -7,7 +7,7 @@ YOLO26x-sem 语义分割训练脚本
 from ultralytics import YOLO
 
 # 加载 yolo26x-sem 预训练模型
-model = YOLO("yolo26x-sem.pt")
+model = YOLO("best.pt")
 
 # 数据集
 data_source = "data.yaml"
@@ -60,6 +60,9 @@ results = model.train(
     # ========== 性能 ==========
     amp=True,                      # 自动混合精度（FP16），省显存加速
     cache=False,                   # True=缓存数据集到内存（RAM充足时开启）
+
+    # ========== 确定性 ==========
+    deterministic=False,           # 关闭确定性算法（语义分割的upsample无确定性cuDNN实现）
 
     # ========== 输出 ==========
     project="./runs",              # 输出根目录

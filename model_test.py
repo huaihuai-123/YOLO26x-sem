@@ -5,12 +5,18 @@ YOLO26x-sem 语义分割验证脚本
 """
 
 from ultralytics import YOLO
+from ultralytics.data.utils import add_polygon_background
+from ultralytics.utils import YAML
 
 # 加载训练好的语义分割模型
-model = YOLO("yolo26x-sem.pt")
+model = YOLO("best.pt")
 
 # 数据集
 data_source = "data.yaml"
+
+# 修复: 多边形标注数据集需要同步 background 类到 model.names
+data_dict = add_polygon_background(YAML.load(data_source))
+model.model.names = data_dict["names"]
 
 # 验证
 metrics = model.val(
@@ -18,7 +24,7 @@ metrics = model.val(
     data=data_source,
     imgsz=640,                     # 输入图片尺寸
     batch=16,                      # batch size，根据显存调整
-    device=0,                      # GPU 设备号；CPU 填 "cpu"
+    device="cpu",                  # GPU 设备号；CPU 填 "cpu"
     workers=8,                     # 数据加载线程数
     split="test",                  # 数据集划分: "val" / "test" / "train"
 

@@ -5,12 +5,19 @@ YOLO26x-sem 语义分割推理脚本
 
 import numpy as np
 from ultralytics import YOLO
+from ultralytics.data.utils import add_polygon_background
+from ultralytics.utils import YAML
 
 # 加载训练好的语义分割模型
-model = YOLO("yolo26x-sem.pt")
+model = YOLO("best.pt")
+
+# 修复: 多边形标注数据集需要同步 background 类到 model.names
+data_source = "data.yaml"
+data_dict = add_polygon_background(YAML.load(data_source))
+model.model.names = data_dict["names"]
 
 # 推理数据源（支持：图片路径 / 目录 / 视频 / RTSP流 / YouTube / webcam=0）
-source = "dataset_predict/QQ2026727-212554.mp4"  # TODO: 替换为实际图片/视频路径
+source = "dataset_predict/QQ20260805-195604.png"  # TODO: 替换为实际图片/视频路径
 
 # 推理
 results = model.predict(
@@ -19,9 +26,9 @@ results = model.predict(
     # ========== 基础配置 ==========
     imgsz=640,                     # 推理图片尺寸
     conf=0.25,                     # 置信度阈值（语义分割中可能不适用，保留兼容）
-    device=0,                      # GPU 设备号；CPU 填 "cpu"
+    device="cpu",                  # GPU 设备号；CPU 填 "cpu"
     batch=1,                       # 推理 batch size
-    half=True,                     # FP16 半精度推理（省显存加速）
+    quantize='fp16',               # FP16 半精度推理（省显存加速）
 
     # ========== 类别过滤 ==========
     classes=None,                  # 只检测指定类别；None=全部；示例: [0, 1]
@@ -45,7 +52,8 @@ results = model.predict(
 # 遍历结果
 for i, r in enumerate(results):
     if r.semantic_mask is not None:
-        mask = r.semantic_mask.cpu().numpy() if hasattr(r.semantic_mask, 'cpu') else np.array(r.semantic_mask)
+        mask_data = r.semantic_mask.data
+        mask = mask_data.cpu().numpy() if hasattr(mask_data, 'cpu') else np.array(mask_data)
         # mask 是 [H, W] 的类别 ID 图，每个像素值代表该位置的类别
         unique_classes = np.unique(mask)
         # 统计每个类别的像素占比

@@ -10,5 +10,5 @@ test: dataset/images/test
 
 # 类别名称
 names:
-  0: machine
-
+  0: screen
+  1: head
